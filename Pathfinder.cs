@@ -14,17 +14,17 @@ public static class Pathfinder
     {
         map = newMap;
         size = newSize;
-        objects = new int[newSize.x, newSize.y];
+        objects = new int[newSize.X, newSize.Y];
     }
 
     public static void PlaceObject(Vector2I pos)
     {
-        objects[pos.x, pos.y]++;
+        objects[pos.X, pos.Y]++;
     }
 
     public static void RemoveObject(Vector2I pos)
     {
-        objects[pos.x, pos.y]--;
+        objects[pos.X, pos.Y]--;
     }
 
     public static void MoveObject(Vector2I oldPos, Vector2I newPos)
@@ -43,7 +43,7 @@ public static class Pathfinder
         float sum = 0;
         for (int i = 0; i < parts.Count - 1; i++)
         {
-            sum += Vector2I.Distance(parts[i], parts[i + 1]);
+            sum += parts[i].Distance(parts[i + 1]);
         }
         return sum;
     }
@@ -129,7 +129,7 @@ public static class Pathfinder
             {
                 if ((i != 0 && j == 0) || (j != 0 && i == 0))
                 {
-                    if (CanMove(start.x + i, start.y + j))
+                    if (CanMove(start.X + i, start.Y + j))
                     {
                         result.AddRange(GetMoveArea(start + new Vector2I(i, j), move - 1));
                     }
@@ -142,11 +142,11 @@ public static class Pathfinder
     public static List<Vector2I> GetAttackArea(Vector2I start, Vector2I range, int move = 0)
     {
         List<Vector2I> result = new List<Vector2I>();
-        if (move >= range.x && move <= range.y)
+        if (move >= range.X && move <= range.Y)
         {
             result.Add(start);
         }
-        if (move >= range.y)
+        if (move >= range.Y)
         {
             return result;
         }
@@ -156,7 +156,7 @@ public static class Pathfinder
             {
                 if ((i != 0 && j == 0) || (j != 0 && i == 0))
                 {
-                    if (CanMove(start.x + i, start.y + j, true))
+                    if (CanMove(start.X + i, start.Y + j, true))
                     {
                         result.AddRange(GetAttackArea(start + new Vector2I(i, j), range, move + 1));
                     }
@@ -223,7 +223,7 @@ public static class Pathfinder
 
     private static bool CanMove(int x, int y, bool ignoreObjects = false)
     {
-        if (x < 0 || y < 0 || x >= size.x || y >= size.y)
+        if (x < 0 || y < 0 || x >= size.X || y >= size.Y)
         {
             return true;
         }
@@ -302,8 +302,8 @@ public static class Pathfinder
 
         public Point(Vector2I vector2Int)
         {
-            x = vector2Int.x;
-            y = vector2Int.y;
+            x = vector2Int.X;
+            y = vector2Int.Y;
         }
 
         public Point(int x, int y)

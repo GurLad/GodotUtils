@@ -16,6 +16,11 @@ public static class ExtensionMethods
         return new Vector2I(Mathf.RoundToInt(vector3.Z / PHYSICAL_SIZE), Mathf.RoundToInt(vector3.X / PHYSICAL_SIZE));
     }
 
+    public static float Distance(this Vector2I origin, Vector2I target)
+    {
+        return Mathf.Sqrt(Mathf.Pow(origin.X - target.X, 2) + Mathf.Pow(origin.Y - target.Y, 2));
+    }
+
     public static float NextFloat(this Random random, Vector2 range)
     {
         return random.NextFloat(range.X, range.Y);

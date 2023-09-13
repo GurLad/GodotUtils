@@ -1,26 +1,24 @@
 using Godot;
+using Godot.Collections;
 using System;
 
-public class SceneController : Node
+public partial class SceneController : Node
 {
     private enum State { Idle, FadeOut, FadeIn }
     public static SceneController Current;
 
     [Export]
-    public NodePath PathTimer;
+    private string FirstScene;
     [Export]
-    public NodePath PathBlackScreen;
+    private Dictionary<string, PackedScene> Scenes;
     [Export]
-    public NodePath PathScenesNode;
+    private Timer Timer;
     [Export]
-    public PackedScene StartScene;
+    private Control BlackScreen;
     [Export]
-    public PackedScene GameScene;
+    private Node ScenesNode;
 
     private State state;
-    private Timer transitionTimer;
-    private Control blackScreen;
-    private Node scenesNode;
     private Node currentScene = null;
     private Action midTransition;
     private Action postTransition;
@@ -29,14 +27,11 @@ public class SceneController : Node
     {
         base._Ready();
         Current = this;
-        transitionTimer = GetNode<Timer>(PathTimer);
-        blackScreen = GetNode<Control>(PathBlackScreen);
-        scenesNode = GetNode<Node>(PathScenesNode);
-        TransitionToScene(StartScene);
+        TransitionToScene(FirstScene);
         FinishFadeOut();
     }
 
-    public override void _Process(float delta)
+    public override void _Process(double delta)
     {
         base._Process(delta);
         switch (state)
@@ -44,15 +39,15 @@ public class SceneController : Node
             case State.Idle:
                 break;
             case State.FadeOut:
-                blackScreen.Modulate = new Color(blackScreen.Modulate, transitionTimer.Percent());
-                if (transitionTimer.TimeLeft <= 0)
+                BlackScreen.Modulate = new Color(BlackScreen.Modulate, Timer.Percent());
+                if (Timer.TimeLeft <= 0)
                 {
                     FinishFadeOut();
                 }
                 break;
             case State.FadeIn:
-                blackScreen.Modulate = new Color(blackScreen.Modulate, 1 - transitionTimer.Percent());
-                if (transitionTimer.TimeLeft <= 0)
+                BlackScreen.Modulate = new Color(BlackScreen.Modulate, 1 - Timer.Percent());
+                if (Timer.TimeLeft <= 0)
                 {
                     FinishFadeIn();
                 }
@@ -64,41 +59,36 @@ public class SceneController : Node
 
     private void FinishFadeOut()
     {
-        blackScreen.Modulate = new Color(blackScreen.Modulate, 1);
+        BlackScreen.Modulate = new Color(BlackScreen.Modulate, 1);
         state = State.FadeIn;
         midTransition?.Invoke();
-        transitionTimer.Start();
+        Timer.Start();
     }
 
     private void FinishFadeIn()
     {
-        blackScreen.Modulate = new Color(blackScreen.Modulate, 0);
+        BlackScreen.Modulate = new Color(BlackScreen.Modulate, 0);
         state = State.Idle;
-        blackScreen.MouseFilter = Control.MouseFilterEnum.Ignore;
+        BlackScreen.MouseFilter = Control.MouseFilterEnum.Ignore;
         postTransition?.Invoke();
     }
 
     public void Transition(Action midTransition, Action postTransition)
     {
-        blackScreen.MouseFilter = Control.MouseFilterEnum.Stop;
+        BlackScreen.MouseFilter = Control.MouseFilterEnum.Stop;
         this.midTransition = midTransition;
         this.postTransition = postTransition;
         state = State.FadeOut;
-        transitionTimer.Start();
+        Timer.Start();
     }
 
-    public void TransitionToScene(PackedScene scene)
+    public void TransitionToScene(string name)
     {
         Transition(() =>
         {
             ClearCurrentScene();
-            scenesNode.AddChild(currentScene = scene.Instance<Node>());
+            ScenesNode.AddChild(currentScene = Scenes[name].Instantiate<Node>());
         }, null);
-    }
-
-    public void TransitionToGame()
-    {
-        Transition(BeginGame, null);
     }
 
     private void ClearCurrentScene()
@@ -108,12 +98,5 @@ public class SceneController : Node
             currentScene.QueueFree();
             currentScene = null;
         }
-    }
-
-    private void BeginGame()
-    {
-        ClearCurrentScene();
-        scenesNode.AddChild(currentScene = GameScene.Instance<GameController>());
-        currentScene.Connect("OnRestart", this, "TransitionToGame");
     }
 }
