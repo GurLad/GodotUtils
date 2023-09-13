@@ -8,52 +8,52 @@ public static class Pathfinder
 {
     private static int[,] map;
     private static int[,] objects;
-    private static Vector2Int size;
+    private static Vector2I size;
 
-    public static void SetMap(int[,] newMap, Vector2Int newSize)
+    public static void SetMap(int[,] newMap, Vector2I newSize)
     {
         map = newMap;
         size = newSize;
         objects = new int[newSize.x, newSize.y];
     }
 
-    public static void PlaceObject(Vector2Int pos)
+    public static void PlaceObject(Vector2I pos)
     {
         objects[pos.x, pos.y]++;
     }
 
-    public static void RemoveObject(Vector2Int pos)
+    public static void RemoveObject(Vector2I pos)
     {
         objects[pos.x, pos.y]--;
     }
 
-    public static void MoveObject(Vector2Int oldPos, Vector2Int newPos)
+    public static void MoveObject(Vector2I oldPos, Vector2I newPos)
     {
         RemoveObject(oldPos);
         PlaceObject(newPos);
     }
 
-    public static float GetTrueDistance(Vector2Int start, Vector2Int end)
+    public static float GetTrueDistance(Vector2I start, Vector2I end)
     {
         if (start == end)
         {
             return 0;
         }
-        List<Vector2Int> parts = GetPath(start, end);
+        List<Vector2I> parts = GetPath(start, end);
         float sum = 0;
         for (int i = 0; i < parts.Count - 1; i++)
         {
-            sum += Vector2Int.Distance(parts[i], parts[i + 1]);
+            sum += Vector2I.Distance(parts[i], parts[i + 1]);
         }
         return sum;
     }
 
-    public static bool HasLineOfSight(Vector2Int start, Vector2Int end)
+    public static bool HasLineOfSight(Vector2I start, Vector2I end)
     {
         return HasLineOfSight(new Point(start), new Point(end));
     }
 
-    public static List<Vector2Int> GetPath(Vector2Int sourceVec, Vector2Int destinationVec)
+    public static List<Vector2I> GetPath(Vector2I sourceVec, Vector2I destinationVec)
     {
         // From Wikipedia...
         Point source = new Point(sourceVec);
@@ -112,12 +112,12 @@ public static class Pathfinder
             }
         }
         // This should be impossible
-        return new List<Vector2Int>();
+        return new List<Vector2I>();
     }
 
-    public static List<Vector2Int> GetMoveArea(Vector2Int start, int move)
+    public static List<Vector2I> GetMoveArea(Vector2I start, int move)
     {
-        List<Vector2Int> result = new List<Vector2Int>();
+        List<Vector2I> result = new List<Vector2I>();
         result.Add(start);
         if (move <= 0)
         {
@@ -131,7 +131,7 @@ public static class Pathfinder
                 {
                     if (CanMove(start.x + i, start.y + j))
                     {
-                        result.AddRange(GetMoveArea(start + new Vector2Int(i, j), move - 1));
+                        result.AddRange(GetMoveArea(start + new Vector2I(i, j), move - 1));
                     }
                 }
             }
@@ -139,9 +139,9 @@ public static class Pathfinder
         return result;
     }
 
-    public static List<Vector2Int> GetAttackArea(Vector2Int start, Vector2Int range, int move = 0)
+    public static List<Vector2I> GetAttackArea(Vector2I start, Vector2I range, int move = 0)
     {
-        List<Vector2Int> result = new List<Vector2Int>();
+        List<Vector2I> result = new List<Vector2I>();
         if (move >= range.x && move <= range.y)
         {
             result.Add(start);
@@ -158,7 +158,7 @@ public static class Pathfinder
                 {
                     if (CanMove(start.x + i, start.y + j, true))
                     {
-                        result.AddRange(GetAttackArea(start + new Vector2Int(i, j), range, move + 1));
+                        result.AddRange(GetAttackArea(start + new Vector2I(i, j), range, move + 1));
                     }
                 }
             }
@@ -166,7 +166,7 @@ public static class Pathfinder
         return result;
     }
 
-    private static List<Vector2Int> RecoverPath(Dictionary<Point, Point> cameFrom, Point current)
+    private static List<Vector2I> RecoverPath(Dictionary<Point, Point> cameFrom, Point current)
     {
         void Squash(List<Point> totalPathArg, int curr, int next)
         {
@@ -203,10 +203,10 @@ public static class Pathfinder
         //    Squash(totalPath, curr, next);
         //}
         // Reverse & convert path
-        List<Vector2Int> reversed = new List<Vector2Int>();
+        List<Vector2I> reversed = new List<Vector2I>();
         for (int i = totalPath.Count - 1; i >= 0; i--)
         {
-            reversed.Add(totalPath[i].ToVector2Int());
+            reversed.Add(totalPath[i].ToVector2I());
         }
         return reversed;
     }
@@ -263,7 +263,7 @@ public static class Pathfinder
                 numerator -= longest;
                 if (i < longest && (!CanMove(x + dx1, y) || !CanMove(x, y + dy1)))
                 {
-                    //Debug.Log("No line of sight between " + new Vector2Int(x, y) + " and " + new Vector2Int(x + dx1, y + dy1) + " - checking " + start + " to " + end);
+                    //Debug.Log("No line of sight between " + new Vector2I(x, y) + " and " + new Vector2I(x + dx1, y + dy1) + " - checking " + start + " to " + end);
                     return false;
                 }
                 x += dx1;
@@ -273,7 +273,7 @@ public static class Pathfinder
             {
                 if (i < longest && (!CanMove(x + dx2, y) || !CanMove(x, y + dy2)))
                 {
-                    //Debug.Log("No line of sight between " + new Vector2Int(x, y) + " and " + new Vector2Int(x + dx2, y + dy2) + " - checking " + start + " to " + end);
+                    //Debug.Log("No line of sight between " + new Vector2I(x, y) + " and " + new Vector2I(x + dx2, y + dy2) + " - checking " + start + " to " + end);
                     return false;
                 }
                 x += dx2;
@@ -300,7 +300,7 @@ public static class Pathfinder
             return !(a == b);
         }
 
-        public Point(Vector2Int vector2Int)
+        public Point(Vector2I vector2Int)
         {
             x = vector2Int.x;
             y = vector2Int.y;
@@ -333,9 +333,9 @@ public static class Pathfinder
             return Mathf.RoundToInt(Mathf.Sqrt(Mathf.Pow(other.x - x, 2) + Mathf.Pow(other.y + y, 2))); // Mathf.Abs(other.x - x) + Mathf.Abs(other.y - y);
         }
 
-        public Vector2Int ToVector2Int()
+        public Vector2I ToVector2I()
         {
-            return new Vector2Int(x, y);
+            return new Vector2I(x, y);
         }
 
         public override string ToString()

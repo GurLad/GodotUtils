@@ -3,303 +3,118 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-public class LevelGenerator : Node
+public partial class LevelGenerator : Node
 {
     public static readonly int PHYSICAL_SIZE = 2;
-    public static PackedScene SalSkeleton;
-    public static PackedScene SalOrc;
-    public static Spatial SalHolder;
-    private enum State { Idle, FadeOut, FadeIn }
     // General data
-    [Export]
+    [ExportGroup("Paths")]
+    [Export(PropertyHint.Dir)]
     public string LevelsPath;
-    [Export]
+    [Export(PropertyHint.File, "*.csv")]
     public string WallsCSVPath;
-    [Export]
+    [Export(PropertyHint.File, "*.json")]
     public string EntitiesJSONPath;
+    [ExportGroup("Data")]
+    [Export]
+    public int NumberOfLevels = 1;
     [Export]
     public int TileSize = 16;
     // Terrain
+    [ExportGroup("Terrain")]
     [Export]
-    public PackedScene FloorScene;
-    [Export]
-    public PackedScene OuterWallScene;
-    [Export]
-    public PackedScene WallScene;
-    [Export]
-    public PackedScene LavaScene;
+    public PackedScene SampleTerrain0;
     // Units
+    [ExportGroup("Entities")]
     [Export]
-    public PackedScene TorchScene;
-    [Export]
-    public PackedScene LadderScene;
-    [Export]
-    public PackedScene OrcScene;
-    [Export]
-    public PackedScene GoblinScene;
-    [Export]
-    public PackedScene SkeletonScene;
-    [Export]
-    public PackedScene ImpScene;
-    [Export]
-    public PackedScene GolemScene;
-    [Export]
-    public PackedScene SalScene;
+    public PackedScene SampleEntityNamedBob;
+    [ExportGroup("Objects")]
+    public Node3D ObjectsHolder;
+
     private LevelData levelData;
     private int[,] walls;
-    private Spatial objectsHolder;
-    private Camera camera;
-    private TurnFlowController turnFlowController;
-    private FloorMarker floorMarker;
-    private PlayerUIController playerUIController;
-    private TutorialController tutorialController;
-    // Transition stuff
-    private State state;
-    private Control blackScreen;
-    private Timer transitionTimer;
     private int currentLevel;
-    private Action midTransition;
-    private Action postTransition;
 
     public override void _Ready()
     {
         base._Ready();
-        objectsHolder = GetNode<Spatial>("Objects/LevelObjects");
-        camera = GetNode<Camera>("Objects/Camera");
-        turnFlowController = GetNode<TurnFlowController>("TurnFlowController");
-        floorMarker = GetNode<FloorMarker>("FloorMarker");
-        playerUIController = GetNode<PlayerUIController>("PlayerUIController");
-        tutorialController = GetNode<TutorialController>("TutorialController");
-        blackScreen = GetNode<Control>("GameUI/BlackScreen");
-        transitionTimer = GetNode<Timer>("TransitionTimer");
         // Generate first level
         GenerateLevel(0);
-        transitionTimer.Start();
-        postTransition = BeginLevel;
-        state = State.FadeIn;
-        // Hardcoded
-        SalSkeleton = SkeletonScene;
-        SalOrc = OrcScene;
-        SalHolder = objectsHolder;
-    }
-
-    public override void _Process(float delta)
-    {
-        base._Process(delta);
-        switch (state)
-        {
-            case State.Idle:
-                break;
-            case State.FadeOut:
-                blackScreen.Modulate = new Color(blackScreen.Modulate, transitionTimer.Percent());
-                if (transitionTimer.TimeLeft <= 0)
-                {
-                    state = State.FadeIn;
-                    midTransition?.Invoke();
-                    transitionTimer.Start();
-                }
-                break;
-            case State.FadeIn:
-                blackScreen.Modulate = new Color(blackScreen.Modulate, 1 - transitionTimer.Percent());
-                if (transitionTimer.TimeLeft <= 0)
-                {
-                    state = State.Idle;
-                    blackScreen.MouseFilter = Control.MouseFilterEnum.Ignore;
-                    postTransition?.Invoke();
-                }
-                break;
-            default:
-                break;
-        }
     }
 
     public void Win()
     {
-        Transition(() => GenerateLevel((currentLevel + 1) % 8), BeginLevel);
+        SceneController.Current.Transition(() => GenerateLevel((currentLevel + 1) % NumberOfLevels), BeginLevel);
     }
 
     public void Lose()
     {
-        Transition(() => GenerateLevel(currentLevel), BeginLevel);
-    }
-
-    public void _OnGameOver(bool won)
-    {
-        if (won)
-        {
-            Win();
-        }
-        else
-        {
-            Lose();
-        }
-    }
-
-    public void _OnTutorialContinue()
-    {
-        BeginLevel();
+        SceneController.Current.Transition(() => GenerateLevel(currentLevel), BeginLevel);
     }
 
     private void GenerateLevel(int number)
     {
         currentLevel = number;
         // Clear previous level
-        turnFlowController.RemoveAllUnits();
-        foreach (Node child in objectsHolder.GetChildren())
+        foreach (Node child in ObjectsHolder.GetChildren())
         {
             if (!child.IsQueuedForDeletion())
             {
                 child.QueueFree();
             }
         }
-        camera.Translation = Vector3.Zero;
         // Read CSV
-        var file = new File();
-        file.Open(LevelsPath + number + WallsCSVPath, File.ModeFlags.Read);
+        var file = FileAccess.Open(LevelsPath + number + WallsCSVPath, FileAccess.ModeFlags.Read);
         string wallsCSV = file.GetAsText();
         file.Close();
         // Read JSON
-        file = new File();
-        file.Open(LevelsPath + number + EntitiesJSONPath, File.ModeFlags.Read);
+        file = FileAccess.Open(LevelsPath + number + EntitiesJSONPath, FileAccess.ModeFlags.Read);
         string entitiesJSON = file.GetAsText();
         file.Close();
         levelData = LevelData.Interpret(entitiesJSON, TileSize);
         // Generate walls
         walls = ImportWalls(wallsCSV, levelData.Width, levelData.Height);
-        floorMarker.NewLevel(new Vector2Int(levelData.Width, levelData.Height), turnFlowController);
         for (int x = 0; x < levelData.Width; x++)
         {
             for (int y = 0; y < levelData.Height; y++)
             {
-                Floor newFloor;
                 switch (walls[x, y])
                 {
-                    case 0: // Floor
-                        newFloor = FloorScene.Instance<Floor>();
-                        newFloor.Translate(new Vector2Int(x, y).To3D());
-                        objectsHolder.AddChild(newFloor);
-                        floorMarker.AddFloor(x, y, newFloor);
+                    case 0: // SampleTerrain0
+                        Node3D newFloor = SampleTerrain0.Instantiate<Node3D>();
+                        newFloor.Translate(new Vector2I(x, y).To3D());
+                        ObjectsHolder.AddChild(newFloor);
                         break;
-                    case 1: // Outer Wall
-                        Spatial newOuterWall = OuterWallScene.Instance<Spatial>();
-                        newOuterWall.Translate(new Vector2Int(x, y).To3D());
-                        objectsHolder.AddChild(newOuterWall);
-                        // Generate a floor below
-                        newFloor = FloorScene.Instance<Floor>();
-                        newFloor.Translate(new Vector2Int(x, y).To3D());
-                        objectsHolder.AddChild(newFloor);
-                        break;
-                    case 2: // Wall
-                        Spatial newWall = WallScene.Instance<Spatial>();
-                        newWall.Translate(new Vector2Int(x, y).To3D());
-                        objectsHolder.AddChild(newWall);
-                        // Generate a floor below
-                        newFloor = FloorScene.Instance<Floor>();
-                        newFloor.Translate(new Vector2Int(x, y).To3D());
-                        objectsHolder.AddChild(newFloor);
-                        break;
-                    case 3: // Lava
-                        Floor newLava = LavaScene.Instance<Floor>();
-                        newLava.Translate(new Vector2Int(x, y).To3D());
-                        objectsHolder.AddChild(newLava);
-                        floorMarker.AddFloor(x, y, newLava);
-                        break;
-                    case 4: // Door
-                        break;
-                    case 5: // Pathfinding blocker - aka floor
                     default:
                         break;
                 }
             }
         }
         // Init pathfinder
-        Pathfinder.SetMap(walls, new Vector2Int(levelData.Width, levelData.Height));
+        Pathfinder.SetMap(walls, new Vector2I(levelData.Width, levelData.Height));
         // Generate objects
         foreach (List<Entity> entities in levelData.entities.Values)
         {
             foreach (Entity entity in entities)
             {
-                Spatial entityObject = null;
-                Unit unitObject;
-                Vector2Int pos = new Vector2Int(entity.x / TileSize, entity.y / TileSize);
+                Node3D entityObject = null;
+                Vector2I pos = new Vector2I(entity.x / TileSize, entity.y / TileSize);
                 switch (entity.id)
                 {
-                    case "Torch":
-                        entityObject = TorchScene.Instance<Spatial>();
-                        Vector3 offset = entity.customFields["Direction"].ToVector2Int().To3D() - pos.To3D();
-                        offset = offset.Normalized() * 1.166f;
-                        entityObject.Translate(offset);
-                        break;
-                    case "Ladder":
-                        entityObject = LadderScene.Instance<Spatial>();
-                        floorMarker.SetWinFloor(pos.x, pos.y);
-                        break;
-                    case "Orc":
-                        entityObject = unitObject = OrcScene.Instance<Unit>();
-                        CreateUnit(unitObject, pos, entity);
-                        break;
-                    case "Goblin":
-                        entityObject = unitObject = GoblinScene.Instance<Unit>();
-                        CreateUnit(unitObject, pos, entity);
-                        unitObject.PatrolPoint = new Vector2Int(entity.customFields["Patrol"].cx, entity.customFields["Patrol"].cy);
-                        break;
-                    case "Skeleton":
-                        entityObject = unitObject = SkeletonScene.Instance<Unit>();
-                        CreateUnit(unitObject, pos, entity);
-                        break;
-                    case "Imp":
-                        entityObject = unitObject = ImpScene.Instance<Unit>();
-                        CreateUnit(unitObject, pos, entity);
-                        break;
-                    case "Golem":
-                        entityObject = unitObject = GolemScene.Instance<Unit>();
-                        CreateUnit(unitObject, pos, entity);
-                        break;
-                    case "Sal":
-                        entityObject = unitObject = SalScene.Instance<Unit>();
-                        CreateUnit(unitObject, pos, entity);
+                    case "Bob":
+                        entityObject = SampleEntityNamedBob.Instantiate<Node3D>();
                         break;
                     default:
-                        throw new System.Exception("What");
+                        throw new System.Exception("No matching entity type! (" + entity.id + ")");
                 }
                 entityObject.Translate(pos.To3D());
-                objectsHolder.AddChild(entityObject);
+                ObjectsHolder.AddChild(entityObject);
             }
         }
-        // Camrea
-        camera.Translate(new Vector3(-(levelData.Width / 2.0f - 0.5f), -(levelData.Height / 2.0f - 0.5f), (levelData.Width - 2) / 2.0f) * PHYSICAL_SIZE);
-        // Init tutorial
-        tutorialController.NewLevel(currentLevel);
-    }
-
-    private void CreateUnit(Unit unitObject, Vector2Int pos, Entity entity)
-    {
-        unitObject.Init();
-        unitObject.Pos = pos;
-        unitObject.HasVest = entity.customFields["HasVest"].boolData;
-        unitObject.FloorMarker = floorMarker;
-        unitObject.TurnFlowController = turnFlowController;
-        unitObject.PlayerUIController = playerUIController;
-        turnFlowController.AddUnit(unitObject);
-        Pathfinder.PlaceObject(pos);
     }
 
     private void BeginLevel()
     {
-        if (tutorialController.NextTutorial())
-        {
-            // Init turn flow
-            turnFlowController.Begin();
-        }
-    }
-
-    private void Transition(Action midTransition, Action postTransition)
-    {
-        blackScreen.MouseFilter = Control.MouseFilterEnum.Stop;
-        this.midTransition = midTransition;
-        this.postTransition = postTransition;
-        state = State.FadeOut;
-        transitionTimer.Start();
+        // Do nothing
     }
 
     private int SafeGetWall(int x, int y)
@@ -342,8 +157,7 @@ public class LevelGenerator : Node
 
         public static LevelData Interpret(string json, int tileSize)
         {
-            LevelData levelData = new LevelData();
-            levelData = JsonConvert.DeserializeObject<LevelData>(json);
+            LevelData levelData = JsonConvert.DeserializeObject<LevelData>(json);
             levelData.tileSize = tileSize;
             //JsonUtility.FromJsonOverwrite(json, this);
             //Debug.Log(JsonConvert.SerializeObject(levelData));
@@ -374,9 +188,9 @@ public class LevelGenerator : Node
         public EntityField(System.Int64 data) { intData = data; }
         public EntityField(bool data) { boolData = data; }
 
-        public Vector2Int ToVector2Int()
+        public Vector2I ToVector2Int()
         {
-            return new Vector2Int(cx, cy);
+            return new Vector2I(cx, cy);
         }
 
         public static implicit operator EntityField(System.Int64 i) =>
