@@ -20,6 +20,16 @@ public static class Easing
         return (c3 * x * x * x - c1 * x * x);
     }
 
+    public static float EaseInOutBack(float x)
+    {
+        float c1 = 1.70158f;
+        float c2 = c1 * 1.525f;
+
+        return x < 0.5
+          ? (Mathf.Pow(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2
+          : (Mathf.Pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2;
+    }
+
     public static float EaseOutQuad(float x)
     {
         return 1 - (1 - x) * (1 - x);

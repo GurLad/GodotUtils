@@ -123,15 +123,6 @@ public partial class Interpolator : Node
                 targetValue,
                 easingFunction)
         { }
-
-        public InterpolateObject(Action<UnitSprite.Animation> setValue, UnitSprite.Animation baseValue, UnitSprite.Animation targetValue, Func<float, float> easingFunction = null) :
-            this(
-                (a) => setValue((UnitSprite.Animation)a),
-                (a, b, t) => t > (1 - Mathf.Epsilon) ? b : a,
-                baseValue,
-                targetValue,
-                easingFunction)
-        { }
     }
 
     public class InterpolateObject<T> : InterpolateObject
