@@ -59,4 +59,11 @@ public static class Easing
     {
         return -(Mathf.Cos(Mathf.Pi * x) - 1) / 2;
     }
+
+    public static float EaseOutElastic(float x)
+    {
+        float c4 = (2 * Mathf.Pi) / 3;
+
+        return x == 0 ? 0 : x == 1 ? 1 : Mathf.Pow(2, -10 * x) * Mathf.Sin((x * 10 - 0.75f) * c4) + 1;
+    }
 }

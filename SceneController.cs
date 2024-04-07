@@ -82,12 +82,13 @@ public partial class SceneController : Node
         Timer.Start();
     }
 
-    public void TransitionToScene(string name)
+    public void TransitionToScene(string name, Action midTransition = null)
     {
         Transition(() =>
         {
             ClearCurrentScene();
             ScenesNode.AddChild(currentScene = Scenes[name].Instantiate<Node>());
+            midTransition?.Invoke();
         }, null);
     }
 
