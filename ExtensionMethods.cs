@@ -1,11 +1,14 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 
 public static class ExtensionMethods
 {
     private static int PHYSICAL_SIZE => LevelGenerator.PHYSICAL_SIZE;
     //private static readonly Random rng = new Random();
+
+    // Math
 
     public static Vector3 To3D(this Vector2I vector2Int)
     {
@@ -22,6 +25,19 @@ public static class ExtensionMethods
         return Mathf.Sqrt(Mathf.Pow(origin.X - target.X, 2) + Mathf.Pow(origin.Y - target.Y, 2));
     }
 
+    public static int Dot(this Vector2I a, Vector2I b) => a.X * b.X + a.Y * b.Y;
+
+    // Modified from https://stackoverflow.com/questions/3120357/get-closest-point-to-a-line
+    public static Vector2I GetClosestPointOnLine(this Vector2I point, Vector2I lineStart, Vector2I lineEnd)
+    {
+        Vector2I ap = point - lineStart;
+        Vector2I ab = lineEnd - lineStart;
+        float t = Mathf.Clamp((float)ap.Dot(ab) / ab.LengthSquared(), 0, 1);
+        return lineStart + new Vector2I(Mathf.RoundToInt(ab.X * t), Mathf.RoundToInt(ab.Y * t));
+    }
+
+    // Random
+
     public static float NextFloat(this Random random, Vector2 range)
     {
         return random.NextFloat(range.X, range.Y);
@@ -32,9 +48,42 @@ public static class ExtensionMethods
         return (float)(random.NextDouble() * (maxValue - minValue) + minValue);
     }
 
+    // public static T RandomItemInList<T>(this List<T> list)
+    // {
+    //     return list.Count > 0 ? list[rng.Next(0, list.Count)] : default;
+    // }
+
+    // public static T RandomItemInList<T>(this T[] list)
+    // {
+    //     return list.Length > 0 ? list[rng.Next(0, list.Length)] : default;
+    // }
+
+    // Timers
+
     public static float Percent(this Timer timer)
     {
         return (float)(1 - timer.TimeLeft / timer.WaitTime);
+    }
+
+    // Json
+
+    public static string ToJson<T>(this T obj, bool prettyPrint = true)
+    {
+        return JsonSerializer.Serialize(obj, typeof(T), new JsonSerializerOptions { WriteIndented = prettyPrint });
+    }
+
+    public static T JsonToObject<T>(this string jsonContent)
+    {
+        return (T)JsonSerializer.Deserialize(jsonContent, typeof(T));
+    }
+
+    public static Vector2ISerializable Serializable(this Vector2I vector2I) => new Vector2ISerializable(vector2I);
+
+    // Strings
+
+    public static string FixFileName(this string str)
+    {
+        return str.Replace("\"", "").Replace("\\", "").Replace("/", "").Replace(":", "").Replace("?", "").Replace("|", "").Replace("*", "").Replace("<", "").Replace(">", "");
     }
 
     public static string FindLineBreaks(this string line, int lineWidth)
@@ -78,6 +127,8 @@ public static class ExtensionMethods
     public static bool BeginsWith(this string source, string value) => source.StartsWith(value);
 
     public static bool BeginsWith(this string source, char value) => source.StartsWith(value);
+
+    // List extensions
 
     public static T Find<T>(this List<T> list, Func<T, int, bool> predicate)
     {
@@ -123,14 +174,4 @@ public static class ExtensionMethods
             action(list[i], i);
         }
     }
-
-    // public static T RandomItemInList<T>(this List<T> list)
-    // {
-    //     return list.Count > 0 ? list[rng.Next(0, list.Count)] : default;
-    // }
-
-    // public static T RandomItemInList<T>(this T[] list)
-    // {
-    //     return list.Length > 0 ? list[rng.Next(0, list.Length)] : default;
-    // }
 }
