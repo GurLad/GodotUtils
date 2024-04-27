@@ -4,82 +4,31 @@ using System;
 
 public partial class SceneController : Node
 {
-    private enum State { Idle, FadeOut, FadeIn }
-    public static SceneController Current;
+    public static SceneController Current { get; private set; }
 
     [Export]
-    private string FirstScene;
+    private string firstScene;
     [Export]
-    private Dictionary<string, PackedScene> Scenes;
+    private Dictionary<string, PackedScene> scenes;
     [Export]
-    private Timer Timer;
+    private NodePath pathTransition;
     [Export]
-    private Control BlackScreen;
-    [Export]
-    private Node ScenesNode;
+    private Node scenesNode;
 
-    private State state;
+    private ITransition transition;
     private Node currentScene = null;
-    private Action midTransition;
-    private Action postTransition;
 
     public override void _Ready()
     {
         base._Ready();
-        Current = this;
-        TransitionToScene(FirstScene);
-        FinishFadeOut();
-    }
-
-    public override void _Process(double delta)
-    {
-        base._Process(delta);
-        switch (state)
+        transition = GetNode(pathTransition) is ITransition t ? t : null;
+        if (transition == null)
         {
-            case State.Idle:
-                break;
-            case State.FadeOut:
-                BlackScreen.Modulate = new Color(BlackScreen.Modulate, Timer.Percent());
-                if (Timer.TimeLeft <= 0)
-                {
-                    FinishFadeOut();
-                }
-                break;
-            case State.FadeIn:
-                BlackScreen.Modulate = new Color(BlackScreen.Modulate, 1 - Timer.Percent());
-                if (Timer.TimeLeft <= 0)
-                {
-                    FinishFadeIn();
-                }
-                break;
-            default:
-                break;
+            GD.PrintErr("SceneController has an invalid transition node! Got " + GetNode(pathTransition).GetType() + " instead of ITransition");
         }
-    }
-
-    private void FinishFadeOut()
-    {
-        BlackScreen.Modulate = new Color(BlackScreen.Modulate, 1);
-        state = State.FadeIn;
-        midTransition?.Invoke();
-        Timer.Start();
-    }
-
-    private void FinishFadeIn()
-    {
-        BlackScreen.Modulate = new Color(BlackScreen.Modulate, 0);
-        state = State.Idle;
-        BlackScreen.MouseFilter = Control.MouseFilterEnum.Ignore;
-        postTransition?.Invoke();
-    }
-
-    public void Transition(Action midTransition, Action postTransition)
-    {
-        BlackScreen.MouseFilter = Control.MouseFilterEnum.Stop;
-        this.midTransition = midTransition;
-        this.postTransition = postTransition;
-        state = State.FadeOut;
-        Timer.Start();
+        Current = this;
+        scenesNode.AddChild(currentScene = scenes[firstScene].Instantiate<Node>());
+        transition?.TransitionOut();
     }
 
     public void TransitionToScene(string name, Action midTransition = null)
@@ -87,9 +36,22 @@ public partial class SceneController : Node
         Transition(() =>
         {
             ClearCurrentScene();
-            ScenesNode.AddChild(currentScene = Scenes[name].Instantiate<Node>());
+            scenesNode.AddChild(currentScene = scenes[name].Instantiate<Node>());
             midTransition?.Invoke();
         }, null);
+    }
+
+    private void Transition(Action midTransition, Action postTransition)
+    {
+        if (transition != null)
+        {
+            transition.Transition(midTransition, postTransition);
+        }
+        else
+        {
+            midTransition?.Invoke();
+            postTransition?.Invoke();
+        }
     }
 
     private void ClearCurrentScene()
