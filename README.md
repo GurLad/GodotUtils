@@ -14,3 +14,5 @@ A basic A\* implementation. Not very efficient, but quicker to set up alongside 
 An interface for smooth transitions. A basic fade in/out one is included.
 ## SceneController
 A generic scene loader using transitions.
+## MusicController
+Play & switch background music using fade in/out or crossfade transitions.

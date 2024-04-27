@@ -15,15 +15,6 @@ public partial class FadeTransition : ColorRect, ITransition
         Visible = false;
     }
 
-    public void Transition(Action midTransition, Action postTransition)
-    {
-        TransitionIn(() =>
-        {
-            midTransition?.Invoke();
-            TransitionOut(postTransition);
-        });
-    }
-
     public void TransitionIn(Action midTransition = null)
     {
         Visible = true;
