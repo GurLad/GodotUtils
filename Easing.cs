@@ -66,4 +66,14 @@ public static class Easing
 
         return x == 0 ? 0 : x == 1 ? 1 : Mathf.Pow(2, -10 * x) * Mathf.Sin((x * 10 - 0.75f) * c4) + 1;
     }
+
+    public static float EaseOutSin(float x)
+    {
+        return Mathf.Sin((x * Mathf.Pi) / 2);
+    }
+
+    public static float EaseInSin(float x)
+    {
+        return 1 - Mathf.Cos((x * Mathf.Pi) / 2);
+    }
 }

@@ -7,8 +7,9 @@ public partial class Interpolator : Node
 {
     // Properties
     public Action OnFinish { private get; set; } = null;
+    public bool Active { get; private set; }
+
     private Timer timer = new Timer();
-    private bool active;
     private List<InterpolateObject> objects = new List<InterpolateObject>();
 
     public override void _Ready()
@@ -21,13 +22,13 @@ public partial class Interpolator : Node
     public override void _Process(double delta)
     {
         base._Process(delta);
-        if (active)
+        if (Active)
         {
             objects.ForEach(a => a.SetValue(a.LerpFunc(a.BaseValue, a.TargetValue, a.EasingFunction(timer.Percent()))));
             if (timer.TimeLeft <= 0)
             {
                 objects.Clear();
-                active = false;
+                Active = false;
                 Action onFinish = OnFinish;
                 OnFinish = null;
                 onFinish?.Invoke();
@@ -35,28 +36,44 @@ public partial class Interpolator : Node
         }
     }
 
+    public void Stop(bool triggerOnFinish)
+    {
+        objects.Clear();
+        Active = false;
+        if (triggerOnFinish)
+        {
+            Action onFinish = OnFinish;
+            OnFinish = null;
+            onFinish?.Invoke();
+        }
+        else
+        {
+            OnFinish = null;
+        }
+    }
+
     public void Interpolate(float time, params InterpolateObject[] objects)
     {
-        if (active)
+        if (Active)
         {
             GD.PushWarning("Interpolator is active!");
         }
         this.objects = objects.ToList();
         timer.WaitTime = time;
         timer.Start();
-        active = true;
+        Active = true;
     }
 
     public void Delay(float time)
     {
-        if (active)
+        if (Active)
         {
             GD.PushWarning("Interpolator is active!");
         }
         objects.Clear();
         timer.WaitTime = time;
         timer.Start();
-        active = true;
+        Active = true;
     }
 
     public class InterpolateObject

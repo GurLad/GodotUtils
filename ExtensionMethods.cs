@@ -65,6 +65,11 @@ public static class ExtensionMethods
         return (float)(1 - timer.TimeLeft / timer.WaitTime);
     }
 
+    public static float SinTime(float rate)
+    {
+        return (Mathf.Sin((Time.GetTicksMsec() / 1000f) * rate * Mathf.Pi) + 1) / 2;
+    }
+
     // Json
 
     public static string ToJson<T>(this T obj, bool prettyPrint = true)
@@ -77,7 +82,7 @@ public static class ExtensionMethods
         return (T)JsonSerializer.Deserialize(jsonContent, typeof(T));
     }
 
-    public static Vector2ISerializable Serializable(this Vector2I vector2I) => new Vector2ISerializable(vector2I);
+    //public static Vector2ISerializable Serializable(this Vector2I vector2I) => new Vector2ISerializable(vector2I);
 
     // Strings
 
