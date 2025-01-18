@@ -5,9 +5,12 @@ using System.Linq;
 
 public partial class Interpolator : Node
 {
+    public enum Mode { Allowed, Warning, Error, ErrorAndIgnore }
+
     // Properties
     public Action OnFinish { private get; set; } = null;
     public bool Active { get; private set; }
+    public Mode InterruptMode { private get; set; } = Mode.Warning; 
 
     private Timer timer = new Timer();
     private List<InterpolateObject> objects = new List<InterpolateObject>();
@@ -56,7 +59,22 @@ public partial class Interpolator : Node
     {
         if (Active)
         {
-            GD.PushWarning("Interpolator is active!");
+            switch (InterruptMode)
+            {
+                case Mode.Allowed:
+                    break;
+                case Mode.Warning:
+                    GD.PushWarning("Interpolator is active!");
+                    break;
+                case Mode.Error:
+                    GD.PushError("Interpolator is active!");
+                    break;
+                case Mode.ErrorAndIgnore:
+                    GD.PushError("Interpolator is active!");
+                    return;
+                default:
+                    break;
+            }
         }
         this.objects = objects.ToList();
         timer.WaitTime = time;
@@ -68,7 +86,22 @@ public partial class Interpolator : Node
     {
         if (Active)
         {
-            GD.PushWarning("Interpolator is active!");
+            switch (InterruptMode)
+            {
+                case Mode.Allowed:
+                    break;
+                case Mode.Warning:
+                    GD.PushWarning("Interpolator is active!");
+                    break;
+                case Mode.Error:
+                    GD.PushError("Interpolator is active!");
+                    break;
+                case Mode.ErrorAndIgnore:
+                    GD.PushError("Interpolator is active!");
+                    return;
+                default:
+                    break;
+            }
         }
         objects.Clear();
         timer.WaitTime = time;
