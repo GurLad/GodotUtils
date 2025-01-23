@@ -3,6 +3,41 @@ using System;
 
 public static class Easing
 {
+    public enum Type
+    {
+        StartMaker = -1,
+        None = -1,
+        EaseOutBack = 0,
+        EaseInBack,
+        EaseOutQuad,
+        EaseInQuad,
+        EaseInOutQuad,
+        EaseOutQuart,
+        EaseInQuart,
+        EaseInOutSin,
+        EaseOutElastic,
+        EndMarker
+    }
+
+    public static float Ease(Type type, float x)
+    {
+        return type switch
+        {
+            Type.None           => x,
+            Type.EaseOutBack    => EaseOutBack   (x),
+            Type.EaseInBack     => EaseInBack    (x),
+            Type.EaseOutQuad    => EaseOutQuad   (x),
+            Type.EaseInQuad     => EaseInQuad    (x),
+            Type.EaseInOutQuad  => EaseInOutQuad (x),
+            Type.EaseOutQuart   => EaseOutQuart  (x),
+            Type.EaseInQuart    => EaseInQuart   (x),
+            Type.EaseInOutSin   => EaseInOutSin  (x),
+            Type.EaseOutElastic => EaseOutElastic(x),
+            Type.EndMarker => throw new Exception("Missing easing type!"),
+            _ => throw new Exception("Missing easing type!")
+        };
+    }
+
     // From https://easings.net
     public static float EaseOutBack(float x)
     {

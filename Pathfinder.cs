@@ -87,7 +87,7 @@ public static class Pathfinder
             }
             Point current = openSet[0];
             int minValue = int.MaxValue;
-            openSet.ForEach(a => { if (fScore.SafeGetKey(a, int.MaxValue) < minValue) minValue = fScore.SafeGetKey(current = a, int.MaxValue); });
+            openSet.ForEach(a => { if (fScore.SafeGet(a, int.MaxValue) < minValue) minValue = fScore.SafeGet(current = a, int.MaxValue); });
             if (current == destination)
             {
                 return RecoverPath(cameFrom, current);
@@ -98,7 +98,7 @@ public static class Pathfinder
                 if (CanMove(neighbor.x, neighbor.y))
                 { 
                     int tentativeScore = gScore[current] + GetDistance(current, neighbor); // No safe as the current should always have a gValue
-                    if (tentativeScore < gScore.SafeGetKey(neighbor, int.MaxValue))
+                    if (tentativeScore < gScore.SafeGet(neighbor, int.MaxValue))
                     {
                         cameFrom.AddOrSet(neighbor, current);
                         gScore.AddOrSet(neighbor, tentativeScore);
@@ -341,25 +341,6 @@ public static class Pathfinder
         public override string ToString()
         {
             return "(" + x + ", " + y + ")";
-        }
-    }
-	
-	// Dictionary extensions
-	
-    public static S SafeGetKey<T, S>(this Dictionary<T, S> dictionary, T key, S defaultValue = default)
-    {
-        return dictionary.ContainsKey(key) ? dictionary[key] : defaultValue;
-    }
-
-    public static void AddOrSet<T, S>(this Dictionary<T, S> dictionary, T key, S value)
-    {
-        if (!dictionary.ContainsKey(key))
-        {
-            dictionary.Add(key, value);
-        }
-        else
-        {
-            dictionary[key] = value;
         }
     }
 }

@@ -101,7 +101,7 @@ public static class ExtensionMethods
         return (T)JsonSerializer.Deserialize(jsonContent, typeof(T));
     }
 
-    //public static Vector2ISerializable Serializable(this Vector2I vector2I) => new Vector2ISerializable(vector2I);
+    public static Vector2ISerializable Serializable(this Vector2I vector2I) => new Vector2ISerializable(vector2I);
 
     // Strings
 
@@ -200,6 +200,24 @@ public static class ExtensionMethods
     }
 
     // Dictionary extensions
+	
+    public static S SafeGet<T, S>(this Dictionary<T, S> dictionary, T key, S defaultValue = default)
+    {
+        return dictionary.ContainsKey(key) ? dictionary[key] : defaultValue;
+    }
+
+    public static S AddOrSet<T, S>(this Dictionary<T, S> dictionary, T key, S value)
+    {
+        if (!dictionary.ContainsKey(key))
+        {
+            dictionary.Add(key, value);
+        }
+        else
+        {
+            dictionary[key] = value;
+        }
+        return value;
+    }
 
     public static void ForEach<Key, Value>(this Dictionary<Key, Value> dictionary, Action<Key, Value> action)
     {
