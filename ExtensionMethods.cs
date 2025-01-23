@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 
 public static class ExtensionMethods
@@ -18,6 +19,11 @@ public static class ExtensionMethods
     public static Vector2I To2D(this Vector3 vector3)
     {
         return new Vector2I(Mathf.RoundToInt(vector3.Z / PHYSICAL_SIZE), Mathf.RoundToInt(vector3.X / PHYSICAL_SIZE));
+    }
+
+    public static Vector2I ToV2I(this Vector2 vector2)
+    {
+        return new Vector2I(Mathf.RoundToInt(vector2.X), Mathf.RoundToInt(vector2.Y));
     }
 
     public static float Distance(this Vector2I origin, Vector2I target)
@@ -56,6 +62,19 @@ public static class ExtensionMethods
     // public static T RandomItemInList<T>(this T[] list)
     // {
     //     return list.Length > 0 ? list[rng.Next(0, list.Length)] : default;
+    // }
+
+    // public static List<T> Shuffle<T>(this List<T> list)
+    // {
+    //     List<T> temp = list.FindAll(a => true);
+    //     list = new List<T>();
+    //     while (temp.Count > 0)
+    //     {
+    //         int i = rng.Next(0, temp.Count);
+    //         list.Add(temp[i]);
+    //         temp.RemoveAt(i);
+    //     }
+    //     return list;
     // }
 
     // Timers
@@ -178,5 +197,23 @@ public static class ExtensionMethods
         {
             action(list[i], i);
         }
+    }
+
+    // Dictionary extensions
+
+    public static void ForEach<Key, Value>(this Dictionary<Key, Value> dictionary, Action<Key, Value> action)
+    {
+        dictionary.Keys.ToList().ForEach(a => action(a, dictionary[a]));
+    }
+
+    public static Dictionary<NewKey, NewValue> ConvertAll<OldKey, OldValue, NewKey, NewValue>(this Dictionary<OldKey, OldValue> dictionary, Func<OldKey, OldValue, (NewKey, NewValue)> predicate)
+    {
+        Dictionary<NewKey, NewValue> result = new Dictionary<NewKey, NewValue>();
+        dictionary.ForEach((key, value) =>
+        {
+            (NewKey key, NewValue value) newItem = predicate(key, value);
+            result.Add(newItem.key, newItem.value);
+        });
+        return result;
     }
 }

@@ -41,6 +41,20 @@ public partial class SceneController : Node
         }, null);
     }
 
+    public override void _Input(InputEvent @event)
+    {
+        base._Input(@event);
+        if (@event is InputEventKey keyEvent && !keyEvent.IsEcho() && keyEvent.Pressed)
+        {
+            if (keyEvent.Keycode == Key.Escape || keyEvent.Keycode == Key.F5)
+            {
+                DisplayServer.WindowSetMode(DisplayServer.WindowGetMode() == DisplayServer.WindowMode.ExclusiveFullscreen ?
+                    DisplayServer.WindowMode.Windowed :
+                    DisplayServer.WindowMode.ExclusiveFullscreen);
+            }
+        }
+    }
+
     private void Transition(Action midTransition, Action postTransition)
     {
         if (transition != null)
