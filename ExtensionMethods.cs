@@ -148,6 +148,13 @@ public static class ExtensionMethods
         return line;
     }
 
+    public static List<string> ToLineBrokenList(this string rawData)
+    {
+        List<string> entries = rawData.Trim().Replace("\r", "").Split('\n').ToList().ConvertAll(a => a.Trim());
+        entries.RemoveAll(a => string.IsNullOrEmpty(a));
+        return entries;
+    }
+
     public static bool BeginsWith(this string source, string value) => source.StartsWith(value);
 
     public static bool BeginsWith(this string source, char value) => source.StartsWith(value);

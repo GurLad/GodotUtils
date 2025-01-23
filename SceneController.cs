@@ -24,7 +24,7 @@ public partial class SceneController : Node
         transition = GetNode(pathTransition) is ITransition t ? t : null;
         if (transition == null)
         {
-            GD.PrintErr("SceneController: Invalid transition node! Got " + GetNode(pathTransition).GetType() + " instead of ITransition");
+            GD.PushError("SceneController: Invalid transition node! Got " + GetNode(pathTransition).GetType() + " instead of ITransition");
         }
         Current = this;
         scenesNode.AddChild(currentScene = scenes[firstScene].Instantiate<Node>());

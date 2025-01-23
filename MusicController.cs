@@ -43,7 +43,7 @@ public partial class MusicController : Node
         }
         else
         {
-            GD.PrintErr("MusicPlayer: Invalid first track! \"" + firstTrack + "\" doesn't exist");
+            GD.PushError("MusicPlayer: Invalid first track! \"" + firstTrack + "\" doesn't exist");
         }
         current = this;
     }
@@ -56,7 +56,7 @@ public partial class MusicController : Node
         }
         else
         {
-            GD.PrintErr("Missing music controller!");
+            GD.PushError("Missing music controller!");
         }
     }
 
