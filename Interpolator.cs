@@ -173,6 +173,16 @@ public partial class Interpolator : Node
                 targetValue,
                 easingFunction)
         { }
+
+        public InterpolateObject(Action<Color> setValue, Color baseValue, Color targetValue, Func<float, float> easingFunction = null) :
+            this(
+                (a) => setValue((Color)a),
+                (a, t) => (Color)a * t,
+                (a, b) => (Color)a + (Color)b,
+                baseValue,
+                targetValue,
+                easingFunction)
+        { }
     }
 
     public class InterpolateObject<T> : InterpolateObject
