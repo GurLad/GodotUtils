@@ -42,6 +42,28 @@ public static class ExtensionMethods
         return lineStart + new Vector2I(Mathf.RoundToInt(ab.X * t), Mathf.RoundToInt(ab.Y * t));
     }
 
+    public static List<Vector2I> GetNeighbors(this Vector2I point, bool includeDiagonal = false)
+    {
+        List<Vector2I> result = new List<Vector2I>()
+        {
+            new Vector2I(point.X - 1, point.Y),
+            new Vector2I(point.X + 1, point.Y),
+            new Vector2I(point.X, point.Y - 1),
+            new Vector2I(point.X, point.Y + 1),
+        };
+        if (includeDiagonal)
+        {
+            result.AddRange(new List<Vector2I>()
+            {
+                new Vector2I(point.X - 1, point.Y - 1),
+                new Vector2I(point.X + 1, point.Y + 1),
+                new Vector2I(point.X - 1, point.Y + 1),
+                new Vector2I(point.X + 1, point.Y - 1),
+            });
+        }
+        return result;
+    }
+
     // Random
 
     public static float NextFloat(this Random random, Vector2 range)
@@ -159,6 +181,22 @@ public static class ExtensionMethods
 
     public static bool BeginsWith(this string source, char value) => source.StartsWith(value);
 
+    // Rich text
+
+    public static string RichTextColor(this string source, Color color) => source.RichTextColor(color.ToHtml());
+
+    public static string RichTextColor(this string source, string html) => "[color=" + html + "]" + source + "[/color]";
+
+    public static string RichTextWave(this string source, float amp = 19, float freq = 6.5f, bool connected = true)
+    {
+        return string.Format("[wave amp={0} freq={1} connected={2}]{3}[/wave]", amp, freq, connected ? 1 : 0, source);
+    }
+
+    public static string RichTextShake(this string source, float rate = 16, float level = 6.0f, bool connected = true)
+    {
+        return string.Format("[shake rate={0} level={1} connected={2}]{3}[/shake]", rate, level, connected ? 1 : 0, source);
+    }
+
     // List extensions
 
     public static T Find<T>(this List<T> list, Func<T, int, bool> predicate)
@@ -204,6 +242,16 @@ public static class ExtensionMethods
         {
             action(list[i], i);
         }
+    }
+
+    public static List<S> ConvertAll<T, S>(this List<T> list, Func<T, int, S> predicate)
+    {
+        List<S> result = new List<S>();
+        for (int i = 0; i < list.Count; i++)
+        {
+            result.Add(predicate(list[i], i));
+        }
+        return result;
     }
 
     // Dictionary extensions

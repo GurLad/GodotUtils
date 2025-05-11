@@ -1,11 +1,11 @@
 using Godot;
 using System;
 
-public partial class FadeTransition : ColorRect, ITransition
+public partial class FadeTransition : Control, ITransition
 {
-    [Export] private float transitionTime;
+    [Export] private float transitionTime = 1;
 
-    private Interpolator interpolator = new Interpolator();
+    protected Interpolator interpolator = new Interpolator();
 
     public override void _Ready()
     {
